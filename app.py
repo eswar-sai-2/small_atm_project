@@ -1,8 +1,16 @@
 import os
 import mysql.connector
 from urllib.parse import urlparse
+from flask import Flask, render_template, request, redirect
 
-url = urlparse(os.environ.get("MYSQL_PUBLIC_URL"))
+app = Flask(__name__)
+
+url_str = os.environ.get("MYSQL_PUBLIC_URL")
+
+if not url_str:
+    raise Exception("MYSQL_PUBLIC_URL not set!")
+
+url = urlparse(url_str)
 
 db = mysql.connector.connect(
     host=url.hostname,
@@ -14,6 +22,7 @@ db = mysql.connector.connect(
 
 cursor = db.cursor(dictionary=True)
 
+print("DB Connected:", url.hostname)
 # SAME VARIABLES
 balance = 0
 user_id = None
