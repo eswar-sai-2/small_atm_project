@@ -4,11 +4,14 @@ from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 
 # MySQL connection
+import os
+
 db = mysql.connector.connect(
-    host="localhost",
-    user="sai",
-    password="220f",
-    database="atm_project"
+    host=os.environ.get("MYSQLHOST"),
+    user=os.environ.get("MYSQLUSER"),
+    password=os.environ.get("MYSQLPASSWORD"),
+    database=os.environ.get("MYSQLDATABASE"),
+    port=int(os.environ.get("MYSQLPORT"))
 )
 
 cursor = db.cursor(dictionary=True)
