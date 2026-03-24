@@ -1,10 +1,8 @@
+import os
 import mysql.connector
 from flask import Flask, render_template, request, redirect
 
 app = Flask(__name__)
-
-# MySQL connection
-import os
 
 db = mysql.connector.connect(
     host=os.environ.get("MYSQLHOST"),
