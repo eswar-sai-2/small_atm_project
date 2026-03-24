@@ -1,15 +1,15 @@
 import os
 import mysql.connector
-from flask import Flask, render_template, request, redirect
+from urllib.parse import urlparse
 
-app = Flask(__name__)
+url = urlparse(os.environ.get("MYSQL_PUBLIC_URL"))
 
 db = mysql.connector.connect(
-    host=os.environ.get("MYSQLHOST"),
-    user=os.environ.get("MYSQLUSER"),
-    password=os.environ.get("MYSQLPASSWORD"),
-    database=os.environ.get("MYSQLDATABASE"),
-    port=int(os.environ.get("MYSQLPORT"))
+    host=url.hostname,
+    user=url.username,
+    password=url.password,
+    database=url.path[1:],
+    port=url.port
 )
 
 cursor = db.cursor(dictionary=True)
