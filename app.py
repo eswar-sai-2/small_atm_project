@@ -29,18 +29,13 @@ cursor = db.cursor(dictionary=True)
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        account = request.form["account"]
+        account = int(request.form["account"])   # ✅ FIXED
         pin = request.form["pin"]
-
-        try:
-            account = int(account)
-        except:
-            return "Invalid Account Number"
 
         cursor.execute("SELECT * FROM users WHERE id=%s", (account,))
         user = cursor.fetchone()
 
-        if user and str(user["pin"]) == str(pin):
+        if user and str(user["pin"]).strip() == str(pin).strip():
             session["user_id"] = user["id"]
             session["user_name"] = user["name"]
             return redirect("/dashboard")
