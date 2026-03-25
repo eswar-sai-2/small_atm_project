@@ -22,22 +22,21 @@ db = mysql.connector.connect(
     port=url.port
 )
 
-db.autocommit = True
 cursor = db.cursor(dictionary=True)
 
 # 🔐 LOGIN
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        account = int(request.form["account"])   # ✅ FIXED
+        account = int(request.form["account"])   # ✅ IMPORTANT
         pin = request.form["pin"]
 
         cursor.execute("SELECT * FROM users WHERE id=%s", (account,))
         user = cursor.fetchone()
 
         if user and str(user["pin"]).strip() == str(pin).strip():
+            session.clear()  # ✅ clear old session
             session["user_id"] = user["id"]
-            session["user_name"] = user["name"]
             return redirect("/dashboard")
         else:
             return "Incorrect PIN"
@@ -53,13 +52,13 @@ def dashboard():
     if not user_id:
         return redirect("/")
 
-    cursor.execute("SELECT balance FROM users WHERE id=%s", (user_id,))
-    result = cursor.fetchone()
+    # ✅ ALWAYS FETCH FRESH DATA
+    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
 
-    if not result:
-        return "User not found"
+    balance = user["balance"]
+    user_name = user["name"]
 
-    balance = result["balance"]
     message = ""
 
     if request.method == "POST":
@@ -73,11 +72,13 @@ def dashboard():
                 "UPDATE users SET balance=%s WHERE id=%s",
                 (balance, user_id)
             )
+            db.commit()
 
             cursor.execute(
                 "INSERT INTO transactions (user_id, type, amount) VALUES (%s, %s, %s)",
                 (user_id, "Deposit", amount)
             )
+            db.commit()
 
             message = "Deposit Successful!"
 
@@ -88,24 +89,27 @@ def dashboard():
                 "UPDATE users SET balance=%s WHERE id=%s",
                 (balance, user_id)
             )
+            db.commit()
 
             cursor.execute(
                 "INSERT INTO transactions (user_id, type, amount) VALUES (%s, %s, %s)",
                 (user_id, "Withdraw", amount)
             )
+            db.commit()
 
             message = "Withdraw Successful!"
 
         else:
             message = "Insufficient Balance!"
 
+    # 📄 TRANSACTION HISTORY
     cursor.execute("SELECT * FROM transactions WHERE user_id=%s", (user_id,))
     history = cursor.fetchall()
 
     return render_template(
         "dashboard.html",
         balance=balance,
-        user_name=session.get("user_name"),
+        user_name=user_name,
         history=history,
         message=message
     )
@@ -147,19 +151,20 @@ def change_pin():
             message = "❌ Old PIN is incorrect!"
 
         elif not new_pin.isdigit():
-            message = "❌ PIN must be numbers only!"
+            message = "❌ PIN must contain only numbers!"
 
         elif len(new_pin) != 4:
-            message = "❌ PIN must be 4 digits!"
+            message = "❌ PIN must be exactly 4 digits!"
 
         elif new_pin != confirm_pin:
-            message = "❌ PINs do not match!"
+            message = "❌ New PIN and Confirm PIN do not match!"
 
         else:
             cursor.execute(
                 "UPDATE users SET pin=%s WHERE id=%s",
                 (int(new_pin), user_id)
             )
+            db.commit()
 
             return redirect("/dashboard")
 
