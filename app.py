@@ -53,15 +53,19 @@ def dashboard():
     if not user_id:
         return redirect("/")
 
-    # Get user data
+    # GET USER
     cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
     user = cursor.fetchone()
+
+    if not user:
+        return redirect("/")
 
     balance = user["balance"]
     user_name = user["name"]
 
     message = ""
 
+    # 🔄 ACTIONS
     if request.method == "POST":
         amount = float(request.form["amount"])
         action = request.form["action"]
@@ -103,22 +107,13 @@ def dashboard():
         else:
             message = "Insufficient Balance!"
 
-    # 📄 Transaction history
+    # 📄 HISTORY
     cursor.execute("SELECT * FROM transactions WHERE user_id=%s", (user_id,))
     history = cursor.fetchall()
 
-    # 📊 COUNT FIX
-    cursor.execute(
-        "SELECT COUNT(*) AS total FROM transactions WHERE user_id=%s AND type='Deposit'",
-        (user_id,)
-    )
-    deposit_count = cursor.fetchone()["total"]
-
-    cursor.execute(
-        "SELECT COUNT(*) AS total FROM transactions WHERE user_id=%s AND type='Withdraw'",
-        (user_id,)
-    )
-    withdraw_count = cursor.fetchone()["total"]
+    # 📊 COUNTS
+    deposit_count = sum(1 for t in history if t["type"] == "Deposit")
+    withdraw_count = sum(1 for t in history if t["type"] == "Withdraw")
 
     return render_template(
         "dashboard.html",
@@ -143,7 +138,11 @@ def history_page():
     cursor.execute("SELECT * FROM transactions WHERE user_id=%s", (user_id,))
     history = cursor.fetchall()
 
-    return render_template("history.html", history=history)
+    return render_template(
+        "history.html",
+        history=history,
+        timedelta=timedelta
+    )
 
 
 # 🔐 CHANGE PIN
@@ -195,6 +194,6 @@ def logout():
     return redirect("/")
 
 
-# ▶️ RUN
+# ▶️ RUN (IMPORTANT FOR RENDER)
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=10000)
