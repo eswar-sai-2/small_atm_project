@@ -43,6 +43,33 @@ def login():
             return "Incorrect PIN"
 
     return render_template("login.html")
+    
+# 🆕 SIGNUP
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        name = request.form["name"]
+        account = int(request.form["account"])
+        pin = int(request.form["pin"])
+        balance = float(request.form["balance"])
+
+        # Check if account already exists
+        cursor.execute("SELECT * FROM users WHERE id=%s", (account,))
+        existing = cursor.fetchone()
+
+        if existing:
+            return "Account already exists!"
+
+        # Insert new user
+        cursor.execute(
+            "INSERT INTO users (id, name, pin, balance) VALUES (%s, %s, %s, %s)",
+            (account, name, pin, balance)
+        )
+        db.commit()
+
+        return redirect("/")
+
+    return render_template("signup.html")
 
 
 # 🏠 DASHBOARD
