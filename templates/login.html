@@ -21,6 +21,7 @@ animation: gradientBG 10s ease infinite;
 display:flex;
 align-items:center;
 justify-content:center;
+height:100vh;
 }
 
 @keyframes gradientBG{
@@ -32,9 +33,9 @@ justify-content:center;
 .main-box{
 width:950px;
 background:white;
-border-radius:10px;
+border-radius:12px;
 overflow:hidden;
-box-shadow:0 10px 30px rgba(0,0,0,0.2);
+box-shadow:0 15px 40px rgba(0,0,0,0.2);
 display:flex;
 }
 
@@ -66,15 +67,18 @@ animation: float 3s ease-in-out infinite;
 .bank-title{
 font-size:28px;
 font-weight:bold;
-margin-bottom:30px;
+margin-bottom:20px;
 }
 
 button{
 transition:0.3s;
+border-radius:8px;
+font-weight:600;
 }
 
 button:hover{
 transform:scale(1.05);
+box-shadow:0 0 12px rgba(0,0,0,0.2);
 }
 
 </style>
@@ -85,7 +89,9 @@ transform:scale(1.05);
 
 <div class="main-box">
 
+<!-- LEFT -->
 <div class="left-box">
+
 <img src="https://cdn-icons-png.flaticon.com/512/3064/3064197.png" width="60" class="mb-3">
 
 <div class="bank-title">🏦 Welcome to the Bank</div>
@@ -107,8 +113,15 @@ transform:scale(1.05);
 
 </form>
 
+<!-- 🔥 SIGNUP LINK ADDED -->
+<p class="text-center mt-3">
+Don't have an account? 
+<a href="/signup">Create Account</a>
+</p>
+
 </div>
 
+<!-- RIGHT -->
 <div class="right-box">
 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
 </div>
