@@ -20,7 +20,7 @@
 <th>ID</th>
 <th>Type</th>
 <th>Amount</th>
-<th>Date</th>
+<th>Date & Time</th>
 </tr>
 </thead>
 
@@ -28,9 +28,25 @@
 {% for t in history %}
 <tr>
 <td>{{ t.id }}</td>
-<td>{{ t.type }}</td>
+
+<td>
+{% if t.type == 'Deposit' %}
+<span class="badge bg-success">Deposit</span>
+{% else %}
+<span class="badge bg-danger">Withdraw</span>
+{% endif %}
+</td>
+
 <td>₹{{ t.amount }}</td>
+
+<td>
+{% if t.date %}
 {{ (t.date + timedelta(hours=5, minutes=30)).strftime('%d-%m-%Y %H:%M') }}
+{% else %}
+No Date
+{% endif %}
+</td>
+
 </tr>
 {% endfor %}
 </tbody>
