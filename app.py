@@ -126,7 +126,7 @@ def dashboard():
         history=history,
         message=message,
         deposit_count=deposit_count,
-        withdraw_count=withdraw_count
+        withdraw_count=withdraw_count,
         timedelta=timedelta
     )
 
