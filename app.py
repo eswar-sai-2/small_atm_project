@@ -3,6 +3,7 @@ import mysql.connector
 from urllib.parse import urlparse
 from flask import Flask, render_template, request, redirect, session
 from datetime import timedelta
+import bcrypt
 
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -35,7 +36,8 @@ def login():
         cursor.execute("SELECT * FROM users WHERE id=%s", (account,))
         user = cursor.fetchone()
 
-        if user and str(user["pin"]).strip() == str(pin).strip():
+        # 🔥 HASH CHECK
+        if user and bcrypt.checkpw(pin.encode(), user["pin"].encode()):
             session.clear()
             session["user_id"] = user["id"]
             return redirect("/dashboard")
@@ -43,31 +45,31 @@ def login():
             return "Incorrect PIN"
 
     return render_template("login.html")
-    
+
+
 # 🆕 SIGNUP
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         name = request.form["name"]
-        account = int(request.form["account"])
-        pin = int(request.form["pin"])
+        pin = request.form["pin"]
         balance = float(request.form["balance"])
 
-        # Check if account already exists
-        cursor.execute("SELECT * FROM users WHERE id=%s", (account,))
-        existing = cursor.fetchone()
+        # 🔥 AUTO ACCOUNT NUMBER
+        cursor.execute("SELECT MAX(id) AS max_id FROM users")
+        result = cursor.fetchone()
+        new_id = (result["max_id"] or 0) + 1
 
-        if existing:
-            return "Account already exists!"
+        # 🔐 HASH PIN
+        hashed_pin = bcrypt.hashpw(pin.encode(), bcrypt.gensalt())
 
-        # Insert new user
         cursor.execute(
             "INSERT INTO users (id, name, pin, balance) VALUES (%s, %s, %s, %s)",
-            (account, name, pin, balance)
+            (new_id, name, hashed_pin.decode(), balance)
         )
         db.commit()
 
-        return redirect("/")
+        return f"Account Created! Your Account Number is {new_id}"
 
     return render_template("signup.html")
 
@@ -80,7 +82,6 @@ def dashboard():
     if not user_id:
         return redirect("/")
 
-    # GET USER
     cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
     user = cursor.fetchone()
 
@@ -89,10 +90,8 @@ def dashboard():
 
     balance = user["balance"]
     user_name = user["name"]
-
     message = ""
 
-    # 🔄 ACTIONS
     if request.method == "POST":
         amount = float(request.form["amount"])
         action = request.form["action"]
@@ -135,7 +134,7 @@ def dashboard():
             message = "Insufficient Balance!"
 
     # 📄 HISTORY
-    cursor.execute("SELECT * FROM transactions WHERE user_id=%s", (user_id,))
+    cursor.execute("SELECT * FROM transactions WHERE user_id=%s ORDER BY id DESC", (user_id,))
     history = cursor.fetchall()
 
     # 📊 COUNTS
@@ -162,7 +161,7 @@ def history_page():
     if not user_id:
         return redirect("/")
 
-    cursor.execute("SELECT * FROM transactions WHERE user_id=%s", (user_id,))
+    cursor.execute("SELECT * FROM transactions WHERE user_id=%s ORDER BY id DESC", (user_id,))
     history = cursor.fetchall()
 
     return render_template(
@@ -190,7 +189,8 @@ def change_pin():
         cursor.execute("SELECT pin FROM users WHERE id=%s", (user_id,))
         current_pin = cursor.fetchone()["pin"]
 
-        if str(old_pin) != str(current_pin):
+        # 🔥 CHECK OLD PIN
+        if not bcrypt.checkpw(old_pin.encode(), current_pin.encode()):
             message = "❌ Old PIN is incorrect!"
 
         elif not new_pin.isdigit():
@@ -200,12 +200,15 @@ def change_pin():
             message = "❌ PIN must be exactly 4 digits!"
 
         elif new_pin != confirm_pin:
-            message = "❌ New PIN and Confirm PIN do not match!"
+            message = "❌ PINs do not match!"
 
         else:
+            # 🔐 HASH NEW PIN
+            hashed_new_pin = bcrypt.hashpw(new_pin.encode(), bcrypt.gensalt())
+
             cursor.execute(
                 "UPDATE users SET pin=%s WHERE id=%s",
-                (int(new_pin), user_id)
+                (hashed_new_pin.decode(), user_id)
             )
             db.commit()
 
@@ -221,6 +224,6 @@ def logout():
     return redirect("/")
 
 
-# ▶️ RUN (IMPORTANT FOR RENDER)
+# ▶️ RUN (FOR RENDER)
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
