@@ -30,7 +30,7 @@
 <td>{{ t.id }}</td>
 <td>{{ t.type }}</td>
 <td>₹{{ t.amount }}</td>
-<td>{{ t.date }}</td>
+{{ (t.date + timedelta(hours=5, minutes=30)).strftime('%d-%m-%Y %H:%M') }}
 </tr>
 {% endfor %}
 </tbody>
