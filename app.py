@@ -28,14 +28,14 @@ cursor = db.cursor(dictionary=True)
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        account = int(request.form["account"])   # ✅ IMPORTANT
+        account = int(request.form["account"])
         pin = request.form["pin"]
 
         cursor.execute("SELECT * FROM users WHERE id=%s", (account,))
         user = cursor.fetchone()
 
         if user and str(user["pin"]).strip() == str(pin).strip():
-            session.clear()  # ✅ clear old session
+            session.clear()
             session["user_id"] = user["id"]
             return redirect("/dashboard")
         else:
@@ -52,7 +52,7 @@ def dashboard():
     if not user_id:
         return redirect("/")
 
-    # ✅ ALWAYS FETCH FRESH DATA
+    # Get user data
     cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
     user = cursor.fetchone()
 
@@ -102,16 +102,32 @@ def dashboard():
         else:
             message = "Insufficient Balance!"
 
-    # 📄 TRANSACTION HISTORY
+    # 📄 Transaction history
     cursor.execute("SELECT * FROM transactions WHERE user_id=%s", (user_id,))
     history = cursor.fetchall()
+
+    # 📊 COUNT FIX
+    cursor.execute(
+        "SELECT COUNT(*) AS total FROM transactions WHERE user_id=%s AND type='Deposit'",
+        (user_id,)
+    )
+    deposit_count = cursor.fetchone()["total"]
+
+    cursor.execute(
+        "SELECT COUNT(*) AS total FROM transactions WHERE user_id=%s AND type='Withdraw'",
+        (user_id,)
+    )
+    withdraw_count = cursor.fetchone()["total"]
 
     return render_template(
         "dashboard.html",
         balance=balance,
         user_name=user_name,
         history=history,
-        message=message
+        message=message,
+        deposit_count=deposit_count,
+        withdraw_count=withdraw_count
+        timedelta=timedelta
     )
 
 
