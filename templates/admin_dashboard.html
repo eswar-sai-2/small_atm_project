@@ -6,6 +6,7 @@
 <title>Admin Dashboard</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
 <style>
 
@@ -17,38 +18,73 @@ font-family: 'Segoe UI', sans-serif;
 /* Navbar */
 .navbar{
 background: linear-gradient(90deg,#4facfe,#00f2fe);
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Profile Panel */
+.profile-card{
+background:white;
+border-radius:15px;
+padding:20px;
+text-align:center;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.profile-card i{
+font-size:40px;
+color:#4facfe;
+margin-bottom:10px;
 }
 
 /* Cards */
 .card{
 border:none;
 border-radius:15px;
-box-shadow:0 15px 35px rgba(0,0,0,0.1);
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
 transition:0.3s;
 }
 
 .card:hover{
-transform:translateY(-8px);
+transform:translateY(-5px);
+}
+
+.summary-card{
+padding:20px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
+
+.summary-card i{
+font-size:30px;
+opacity:0.8;
+}
+
+/* Chart */
+.chart-container{
+max-width:300px;
+margin:auto;
 }
 
 /* Tables */
 .table{
 border-radius:12px;
 overflow:hidden;
-box-shadow:0 10px 25px rgba(0,0,0,0.05);
+font-size:14px;
 }
 
-table tbody tr:hover{
-background:#f1f7ff;
+.table-sm td, .table-sm th{
+padding:6px;
 }
 
-/* Buttons */
-.btn{
-border-radius:10px;
+/* Search box */
+.search-box{
+max-width:250px;
 }
 
-h2{
-font-weight:bold;
+/* Pagination */
+.pagination{
+justify-content:center;
 }
 
 </style>
@@ -57,9 +93,9 @@ font-weight:bold;
 
 <body>
 
-<!-- 🔥 NAVBAR -->
+<!-- NAVBAR -->
 <nav class="navbar navbar-dark">
-<div class="container">
+<div class="container d-flex justify-content-between">
 <span class="navbar-brand">👨‍💼 Admin Dashboard</span>
 <a href="/admin/logout" class="btn btn-danger btn-sm">Logout</a>
 </div>
@@ -67,36 +103,65 @@ font-weight:bold;
 
 <div class="container mt-4">
 
-<!-- 🔥 SUMMARY CARDS -->
-<div class="row text-center mb-4">
+<div class="row">
 
-<div class="col-md-6">
-<div class="card p-4 bg-success text-white">
-<h5>Total Deposit</h5>
-<h2>₹{{ total_deposit }}</h2>
-</div>
-</div>
-
-<div class="col-md-6">
-<div class="card p-4 bg-danger text-white">
-<h5>Total Withdraw</h5>
-<h2>₹{{ total_withdraw }}</h2>
+<!-- PROFILE PANEL -->
+<div class="col-md-3 mb-4">
+<div class="profile-card">
+<i class="fas fa-user-circle"></i>
+<h5>Admin</h5>
+<p class="text-muted">System Manager</p>
 </div>
 </div>
 
+<div class="col-md-9">
+
+<!-- SUMMARY CARDS -->
+<div class="row mb-4">
+
+<div class="col-md-6 mb-3">
+<div class="card summary-card bg-success text-white">
+<div>
+<h6>Total Deposit</h6>
+<h4>₹{{ total_deposit }}</h4>
+</div>
+<i class="fas fa-arrow-down"></i>
+</div>
 </div>
 
-<!-- 📊 CHART -->
-<div class="card p-4 mb-4">
-<h5 class="text-center mb-3">📊 Transaction Analytics</h5>
+<div class="col-md-6 mb-3">
+<div class="card summary-card bg-danger text-white">
+<div>
+<h6>Total Withdraw</h6>
+<h4>₹{{ total_withdraw }}</h4>
+</div>
+<i class="fas fa-arrow-up"></i>
+</div>
+</div>
+
+</div>
+
+<!-- CHART -->
+<div class="card p-3 mb-4">
+<h6 class="text-center mb-3">📊 Transaction Analytics</h6>
+
+<div class="chart-container">
 <canvas id="myChart"></canvas>
 </div>
 
-<!-- USERS -->
-<div class="card p-4 mb-4">
-<h5>👥 Users</h5>
+</div>
 
-<table class="table table-bordered text-center mt-3">
+</div>
+</div>
+
+<!-- USERS -->
+<div class="card p-3 mb-4">
+<div class="d-flex justify-content-between">
+<h6>👥 Users</h6>
+<input type="text" id="userSearch" class="form-control search-box" placeholder="Search user...">
+</div>
+
+<table class="table table-bordered text-center mt-3 table-sm" id="userTable">
 <thead class="table-dark">
 <tr>
 <th>ID</th>
@@ -120,6 +185,10 @@ font-weight:bold;
 </tbody>
 </table>
 
+<nav>
+<ul class="pagination" id="userPagination"></ul>
+</nav>
+
 <a href="/admin/clear_history" 
 class="btn btn-danger"
 onclick="return confirm('Delete all transactions?')">
@@ -129,10 +198,13 @@ onclick="return confirm('Delete all transactions?')">
 </div>
 
 <!-- TRANSACTIONS -->
-<div class="card p-4 mb-4">
-<h5>💳 Transactions</h5>
+<div class="card p-3 mb-4">
+<div class="d-flex justify-content-between">
+<h6>💳 Transactions</h6>
+<input type="text" id="txnSearch" class="form-control search-box" placeholder="Search transaction...">
+</div>
 
-<table class="table table-bordered text-center mt-3">
+<table class="table table-bordered text-center mt-3 table-sm" id="txnTable">
 <thead class="table-primary">
 <tr>
 <th>ID</th>
@@ -160,20 +232,22 @@ onclick="return confirm('Delete all transactions?')">
 </tbody>
 </table>
 
-</div>
+<nav>
+<ul class="pagination" id="txnPagination"></ul>
+</nav>
 
 </div>
 
-<!-- 📊 CHART SCRIPT -->
+</div>
+
+<!-- CHART -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 const deposit = Number("{{ total_deposit | default(0) }}");
 const withdraw = Number("{{ total_withdraw | default(0) }}");
 
-const ctx = document.getElementById('myChart').getContext('2d');
-
-new Chart(ctx, {
+new Chart(document.getElementById('myChart'), {
     type: 'doughnut',
     data: {
         labels: ['Deposit', 'Withdraw'],
@@ -181,8 +255,67 @@ new Chart(ctx, {
             data: [deposit, withdraw],
             backgroundColor: ['#28a745','#dc3545']
         }]
+    },
+    options: {
+        cutout: '70%',
+        plugins:{
+            legend:{ position:'bottom' }
+        }
     }
 });
+</script>
+
+<!-- SEARCH + PAGINATION SCRIPT -->
+<script>
+function setupTable(tableId, searchId, paginationId){
+    const table = document.getElementById(tableId);
+    const rows = table.querySelectorAll("tbody tr");
+    const searchInput = document.getElementById(searchId);
+    const pagination = document.getElementById(paginationId);
+
+    let currentPage = 1;
+    const rowsPerPage = 5;
+
+    function displayRows(){
+        let filtered = Array.from(rows).filter(row =>
+            row.innerText.toLowerCase().includes(searchInput.value.toLowerCase())
+        );
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const paginated = filtered.slice(start, start + rowsPerPage);
+
+        rows.forEach(row => row.style.display = "none");
+        paginated.forEach(row => row.style.display = "");
+
+        setupPagination(filtered.length);
+    }
+
+    function setupPagination(total){
+        pagination.innerHTML = "";
+        const pages = Math.ceil(total / rowsPerPage);
+
+        for(let i=1;i<=pages;i++){
+            const btn = document.createElement("li");
+            btn.className = "page-item";
+            btn.innerHTML = `<a class="page-link">${i}</a>`;
+            btn.onclick = () => {
+                currentPage = i;
+                displayRows();
+            };
+            pagination.appendChild(btn);
+        }
+    }
+
+    searchInput.addEventListener("input", () => {
+        currentPage = 1;
+        displayRows();
+    });
+
+    displayRows();
+}
+
+setupTable("userTable","userSearch","userPagination");
+setupTable("txnTable","txnSearch","txnPagination");
 </script>
 
 </body>
