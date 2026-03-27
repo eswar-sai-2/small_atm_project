@@ -3,11 +3,9 @@
 
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Bank Login</title>
 
 <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
@@ -22,6 +20,40 @@ display:flex;
 align-items:center;
 justify-content:center;
 height:100vh;
+transition:0.3s;
+}
+
+/* 🌙 DARK MODE */
+.dark-mode{
+background:#121212 !important;
+color:white;
+}
+
+.dark-mode .main-box{
+background:#1e1e1e;
+color:white;
+}
+
+.dark-mode input{
+background:#333;
+color:white;
+border:1px solid #555;
+}
+
+/* MOBILE FIX */
+@media(max-width:768px){
+.main-box{
+flex-direction:column;
+width:90%;
+}
+
+.left-box, .right-box{
+width:100%;
+}
+
+.right-box{
+display:none;
+}
 }
 
 @keyframes gradientBG{
@@ -89,7 +121,6 @@ box-shadow:0 0 12px rgba(0,0,0,0.2);
 
 <div class="main-box">
 
-<!-- LEFT -->
 <div class="left-box">
 
 <img src="https://cdn-icons-png.flaticon.com/512/3064/3064197.png" width="60" class="mb-3">
@@ -98,36 +129,47 @@ box-shadow:0 0 12px rgba(0,0,0,0.2);
 <p class="text-muted mb-4">Secure ATM Banking System</p>
 
 <form method="POST">
-
 <div class="mb-3">
 <label>Account Number</label>
-<input type="number" name="account" class="form-control" placeholder="Enter account number" required>
+<input type="number" name="account" class="form-control" required>
 </div>
 
 <div class="mb-3">
 <label>Password</label>
-<input type="password" name="pin" class="form-control" placeholder="Enter password" required>
+<input type="password" name="pin" class="form-control" required>
 </div>
 
 <button class="btn btn-primary w-100">Login</button>
-
 </form>
 
-<!-- 🔥 SIGNUP LINK ADDED -->
 <p class="text-center mt-3">
 Don't have an account? 
 <a href="/signup">Create Account</a>
 </p>
 
+<!-- 🌙 TOGGLE -->
+<button onclick="toggleMode()" class="btn btn-dark btn-sm mt-3">🌙</button>
+
 </div>
 
-<!-- RIGHT -->
 <div class="right-box">
 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
 </div>
 
 </div>
 
-</body>
+<script>
+function toggleMode(){
+document.body.classList.toggle("dark-mode");
+localStorage.setItem("mode",document.body.classList.contains("dark-mode")?"dark":"light");
+}
 
+window.onload=function(){
+if(localStorage.getItem("mode")==="dark"){
+document.body.classList.add("dark-mode");
+}
+}
+</script>
+
+</body>
 </html>

@@ -13,15 +13,34 @@
 body{
 background: linear-gradient(135deg,#eef2f3,#dfe9f3);
 font-family: 'Segoe UI', sans-serif;
+transition: 0.3s;
+}
+
+/* DARK MODE */
+.dark-mode{
+background:#121212 !important;
+color:white !important;
+}
+
+.dark-mode .card{
+background:#1e1e1e;
+color:white;
+}
+
+.dark-mode .navbar{
+background:#000 !important;
+}
+
+.dark-mode .table{
+color:white;
 }
 
 /* Navbar */
 .navbar{
 background: linear-gradient(90deg,#4facfe,#00f2fe);
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* Profile Panel */
+/* Profile */
 .profile-card{
 background:white;
 border-radius:15px;
@@ -33,7 +52,6 @@ box-shadow:0 10px 25px rgba(0,0,0,0.08);
 .profile-card i{
 font-size:40px;
 color:#4facfe;
-margin-bottom:10px;
 }
 
 /* Cards */
@@ -41,23 +59,18 @@ margin-bottom:10px;
 border:none;
 border-radius:15px;
 box-shadow:0 10px 25px rgba(0,0,0,0.08);
-transition:0.3s;
-}
-
-.card:hover{
-transform:translateY(-5px);
+margin-bottom:15px;
 }
 
 .summary-card{
 padding:20px;
 display:flex;
-align-items:center;
 justify-content:space-between;
+align-items:center;
 }
 
 .summary-card i{
 font-size:30px;
-opacity:0.8;
 }
 
 /* Chart */
@@ -66,25 +79,11 @@ max-width:300px;
 margin:auto;
 }
 
-/* Tables */
-.table{
-border-radius:12px;
-overflow:hidden;
-font-size:14px;
-}
-
-.table-sm td, .table-sm th{
-padding:6px;
-}
-
-/* Search box */
-.search-box{
-max-width:250px;
-}
-
-/* Pagination */
-.pagination{
-justify-content:center;
+/* Responsive text */
+@media (max-width:768px){
+h2{font-size:18px;}
+h5{font-size:14px;}
+.btn{font-size:12px;}
 }
 
 </style>
@@ -96,8 +95,14 @@ justify-content:center;
 <!-- NAVBAR -->
 <nav class="navbar navbar-dark">
 <div class="container d-flex justify-content-between">
+
 <span class="navbar-brand">👨‍💼 Admin Dashboard</span>
+
+<div>
+<button onclick="toggleMode()" class="btn btn-dark btn-sm">🌙</button>
 <a href="/admin/logout" class="btn btn-danger btn-sm">Logout</a>
+</div>
+
 </div>
 </nav>
 
@@ -105,8 +110,8 @@ justify-content:center;
 
 <div class="row">
 
-<!-- PROFILE PANEL -->
-<div class="col-md-3 mb-4">
+<!-- PROFILE -->
+<div class="col-12 col-md-3">
 <div class="profile-card">
 <i class="fas fa-user-circle"></i>
 <h5>Admin</h5>
@@ -114,26 +119,26 @@ justify-content:center;
 </div>
 </div>
 
-<div class="col-md-9">
+<div class="col-12 col-md-9">
 
-<!-- SUMMARY CARDS -->
-<div class="row mb-4">
+<!-- CARDS -->
+<div class="row">
 
-<div class="col-md-6 mb-3">
+<div class="col-12 col-md-6">
 <div class="card summary-card bg-success text-white">
 <div>
-<h6>Total Deposit</h6>
-<h4>₹{{ total_deposit }}</h4>
+<h5>Total Deposit</h5>
+<h2>₹{{ total_deposit }}</h2>
 </div>
 <i class="fas fa-arrow-down"></i>
 </div>
 </div>
 
-<div class="col-md-6 mb-3">
+<div class="col-12 col-md-6">
 <div class="card summary-card bg-danger text-white">
 <div>
-<h6>Total Withdraw</h6>
-<h4>₹{{ total_withdraw }}</h4>
+<h5>Total Withdraw</h5>
+<h2>₹{{ total_withdraw }}</h2>
 </div>
 <i class="fas fa-arrow-up"></i>
 </div>
@@ -142,8 +147,8 @@ justify-content:center;
 </div>
 
 <!-- CHART -->
-<div class="card p-3 mb-4">
-<h6 class="text-center mb-3">📊 Transaction Analytics</h6>
+<div class="card p-3">
+<h5 class="text-center">📊 Analytics</h5>
 
 <div class="chart-container">
 <canvas id="myChart"></canvas>
@@ -155,12 +160,14 @@ justify-content:center;
 </div>
 
 <!-- USERS -->
-<div class="card p-3 mb-4">
-<div class="d-flex justify-content-between">
-<h6>👥 Users</h6>
-<input type="text" id="userSearch" class="form-control search-box" placeholder="Search user...">
+<div class="card p-3 mt-4">
+
+<div class="d-flex justify-content-between flex-wrap">
+<h5>👥 Users</h5>
+<input type="text" id="userSearch" class="form-control w-50 w-md-25" placeholder="Search...">
 </div>
 
+<div class="table-responsive">
 <table class="table table-bordered text-center mt-3 table-sm" id="userTable">
 <thead class="table-dark">
 <tr>
@@ -184,26 +191,21 @@ justify-content:center;
 {% endfor %}
 </tbody>
 </table>
+</div>
 
-<nav>
 <ul class="pagination" id="userPagination"></ul>
-</nav>
-
-<a href="/admin/clear_history" 
-class="btn btn-danger"
-onclick="return confirm('Delete all transactions?')">
-🗑 Clear Transactions
-</a>
 
 </div>
 
 <!-- TRANSACTIONS -->
-<div class="card p-3 mb-4">
-<div class="d-flex justify-content-between">
-<h6>💳 Transactions</h6>
-<input type="text" id="txnSearch" class="form-control search-box" placeholder="Search transaction...">
+<div class="card p-3 mt-4">
+
+<div class="d-flex justify-content-between flex-wrap">
+<h5>💳 Transactions</h5>
+<input type="text" id="txnSearch" class="form-control w-50 w-md-25" placeholder="Search...">
 </div>
 
+<div class="table-responsive">
 <table class="table table-bordered text-center mt-3 table-sm" id="txnTable">
 <thead class="table-primary">
 <tr>
@@ -231,10 +233,9 @@ onclick="return confirm('Delete all transactions?')">
 {% endfor %}
 </tbody>
 </table>
+</div>
 
-<nav>
 <ul class="pagination" id="txnPagination"></ul>
-</nav>
 
 </div>
 
@@ -250,22 +251,39 @@ const withdraw = Number("{{ total_withdraw | default(0) }}");
 new Chart(document.getElementById('myChart'), {
     type: 'doughnut',
     data: {
-        labels: ['Deposit', 'Withdraw'],
+        labels: ['Deposit','Withdraw'],
         datasets: [{
             data: [deposit, withdraw],
             backgroundColor: ['#28a745','#dc3545']
         }]
     },
-    options: {
-        cutout: '70%',
-        plugins:{
-            legend:{ position:'bottom' }
-        }
+    options:{
+        cutout:'70%',
+        plugins:{ legend:{position:'bottom'} }
     }
 });
 </script>
 
-<!-- SEARCH + PAGINATION SCRIPT -->
+<!-- DARK MODE -->
+<script>
+function toggleMode(){
+    document.body.classList.toggle("dark-mode");
+
+    if(document.body.classList.contains("dark-mode")){
+        localStorage.setItem("mode","dark");
+    } else {
+        localStorage.setItem("mode","light");
+    }
+}
+
+window.onload = function(){
+    if(localStorage.getItem("mode")==="dark"){
+        document.body.classList.add("dark-mode");
+    }
+}
+</script>
+
+<!-- SEARCH + PAGINATION -->
 <script>
 function setupTable(tableId, searchId, paginationId){
     const table = document.getElementById(tableId);
@@ -281,33 +299,30 @@ function setupTable(tableId, searchId, paginationId){
             row.innerText.toLowerCase().includes(searchInput.value.toLowerCase())
         );
 
-        const start = (currentPage - 1) * rowsPerPage;
-        const paginated = filtered.slice(start, start + rowsPerPage);
+        const start = (currentPage-1)*rowsPerPage;
+        const paginated = filtered.slice(start,start+rowsPerPage);
 
-        rows.forEach(row => row.style.display = "none");
-        paginated.forEach(row => row.style.display = "");
+        rows.forEach(row=>row.style.display="none");
+        paginated.forEach(row=>row.style.display="");
 
         setupPagination(filtered.length);
     }
 
     function setupPagination(total){
-        pagination.innerHTML = "";
-        const pages = Math.ceil(total / rowsPerPage);
+        pagination.innerHTML="";
+        const pages = Math.ceil(total/rowsPerPage);
 
         for(let i=1;i<=pages;i++){
-            const btn = document.createElement("li");
-            btn.className = "page-item";
-            btn.innerHTML = `<a class="page-link">${i}</a>`;
-            btn.onclick = () => {
-                currentPage = i;
-                displayRows();
-            };
-            pagination.appendChild(btn);
+            const li=document.createElement("li");
+            li.className="page-item";
+            li.innerHTML=`<a class="page-link">${i}</a>`;
+            li.onclick=()=>{currentPage=i;displayRows();};
+            pagination.appendChild(li);
         }
     }
 
-    searchInput.addEventListener("input", () => {
-        currentPage = 1;
+    searchInput.addEventListener("input",()=>{
+        currentPage=1;
         displayRows();
     });
 
