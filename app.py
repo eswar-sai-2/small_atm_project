@@ -222,9 +222,12 @@ def logout():
 # 🔥 ADMIN LOGIN
 @app.route("/admin", methods=["GET", "POST"])
 def admin_login():
+    if session.get("admin"):
+        return redirect("/admin/dashboard")
+
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         if username == "admin" and password == "admin123":
             session["admin"] = True
@@ -232,7 +235,7 @@ def admin_login():
         else:
             return "Invalid Admin Login"
 
-    return render_template("admin_login.html")
+    return render_template("admin_login.html", message=message)
 
 
 # 🔥 ADMIN DASHBOARD
@@ -241,15 +244,8 @@ def admin_dashboard():
     if not session.get("admin"):
         return redirect("/admin")
 
-    # ✅ DEBUG START
-    cursor.execute("SELECT COUNT(*) as total FROM users")
-    count = cursor.fetchone()
-    print("TOTAL USERS:", count)
-
     cursor.execute("SELECT id, name, balance FROM users")
     users = cursor.fetchall()
-    print("DEBUG USERS:", users)
-    # ✅ DEBUG END
 
     cursor.execute("SELECT * FROM transactions ORDER BY id DESC")
     transactions = cursor.fetchall()
