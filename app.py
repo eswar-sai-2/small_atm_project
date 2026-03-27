@@ -241,8 +241,15 @@ def admin_dashboard():
     if not session.get("admin"):
         return redirect("/admin")
 
+    # ✅ DEBUG START
+    cursor.execute("SELECT COUNT(*) as total FROM users")
+    count = cursor.fetchone()
+    print("TOTAL USERS:", count)
+
     cursor.execute("SELECT id, name, balance FROM users")
     users = cursor.fetchall()
+    print("DEBUG USERS:", users)
+    # ✅ DEBUG END
 
     cursor.execute("SELECT * FROM transactions ORDER BY id DESC")
     transactions = cursor.fetchall()
