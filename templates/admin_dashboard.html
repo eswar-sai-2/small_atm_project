@@ -67,6 +67,11 @@ Delete
 {% endfor %}
 </tbody>
 </table>
+<a href="/admin/clear_history" 
+   class="btn btn-danger mb-3"
+   onclick="return confirm('Are you sure to delete all transaction history?')">
+🗑 Clear All Transactions
+</a>
 
 <!-- TRANSACTIONS TABLE -->
 <h4 class="mt-4">Transactions</h4>
