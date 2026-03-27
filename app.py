@@ -36,7 +36,6 @@ def login():
         cursor.execute("SELECT * FROM users WHERE id=%s", (account,))
         user = cursor.fetchone()
 
-        # 🔥 HASH CHECK
         if user and bcrypt.checkpw(pin.encode(), user["pin"].encode()):
             session.clear()
             session["user_id"] = user["id"]
@@ -55,12 +54,12 @@ def signup():
         pin = request.form["pin"]
         balance = float(request.form["balance"])
 
-        # 🔥 AUTO ACCOUNT NUMBER
+        # AUTO ACCOUNT NUMBER
         cursor.execute("SELECT MAX(id) AS max_id FROM users")
         result = cursor.fetchone()
         new_id = (result["max_id"] or 0) + 1
 
-        # 🔐 HASH PIN
+        # HASH PIN
         hashed_pin = bcrypt.hashpw(pin.encode(), bcrypt.gensalt())
 
         cursor.execute(
@@ -133,11 +132,9 @@ def dashboard():
         else:
             message = "Insufficient Balance!"
 
-    # 📄 HISTORY
     cursor.execute("SELECT * FROM transactions WHERE user_id=%s ORDER BY id DESC", (user_id,))
     history = cursor.fetchall()
 
-    # 📊 COUNTS
     deposit_count = sum(1 for t in history if t["type"] == "Deposit")
     withdraw_count = sum(1 for t in history if t["type"] == "Withdraw")
 
@@ -153,7 +150,7 @@ def dashboard():
     )
 
 
-# 📄 HISTORY PAGE
+# 📄 HISTORY
 @app.route("/history")
 def history_page():
     user_id = session.get("user_id")
@@ -189,7 +186,6 @@ def change_pin():
         cursor.execute("SELECT pin FROM users WHERE id=%s", (user_id,))
         current_pin = cursor.fetchone()["pin"]
 
-        # 🔥 CHECK OLD PIN
         if not bcrypt.checkpw(old_pin.encode(), current_pin.encode()):
             message = "❌ Old PIN is incorrect!"
 
@@ -203,7 +199,6 @@ def change_pin():
             message = "❌ PINs do not match!"
 
         else:
-            # 🔐 HASH NEW PIN
             hashed_new_pin = bcrypt.hashpw(new_pin.encode(), bcrypt.gensalt())
 
             cursor.execute(
@@ -224,6 +219,53 @@ def logout():
     return redirect("/")
 
 
-# ▶️ RUN (FOR RENDER)
+# 🔥 ADMIN LOGIN
+@app.route("/admin", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username == "admin" and password == "admin123":
+            session["admin"] = True
+            return redirect("/admin/dashboard")
+        else:
+            return "Invalid Admin Login"
+
+    return render_template("admin_login.html")
+
+
+# 🔥 ADMIN DASHBOARD
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    if not session.get("admin"):
+        return redirect("/admin")
+
+    cursor.execute("SELECT id, name, balance FROM users")
+    users = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM transactions ORDER BY id DESC")
+    transactions = cursor.fetchall()
+
+    return render_template(
+        "admin_dashboard.html",
+        users=users,
+        transactions=transactions
+    )
+
+
+# 🔥 DELETE USER
+@app.route("/admin/delete_user/<int:user_id>")
+def delete_user(user_id):
+    if not session.get("admin"):
+        return redirect("/admin")
+
+    cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
+    db.commit()
+
+    return redirect("/admin/dashboard")
+
+
+# ▶️ RUN
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
