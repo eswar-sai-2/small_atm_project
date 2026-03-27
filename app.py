@@ -238,6 +238,15 @@ def admin_login():
             message = "❌ Invalid Username or Password"
 
     return render_template("admin_login.html", message=message)
+@app.route("/admin/clear_history")
+def clear_history():
+    if not session.get("admin"):
+        return redirect("/admin")
+
+    cursor.execute("DELETE FROM transactions")
+    db.commit()
+
+    return redirect("/admin/dashboard")
 
 
 # 🔥 ADMIN DASHBOARD
