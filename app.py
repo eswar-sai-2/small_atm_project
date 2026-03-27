@@ -39,6 +39,14 @@ def login():
         if user and bcrypt.checkpw(pin.encode(), user["pin"].encode()):
             session.clear()
             session["user_id"] = user["id"]
+
+            # ✅ NEW: role support (optional)
+            session["role"] = user.get("role", "user")
+
+            # ✅ NEW: auto admin detect
+            if user.get("role") == "admin":
+                session["admin"] = True
+
             return redirect("/dashboard")
         else:
             return "Incorrect PIN"
@@ -54,12 +62,10 @@ def signup():
         pin = request.form["pin"]
         balance = float(request.form["balance"])
 
-        # AUTO ACCOUNT NUMBER
         cursor.execute("SELECT MAX(id) AS max_id FROM users")
         result = cursor.fetchone()
         new_id = (result["max_id"] or 0) + 1
 
-        # HASH PIN
         hashed_pin = bcrypt.hashpw(pin.encode(), bcrypt.gensalt())
 
         cursor.execute(
@@ -212,7 +218,7 @@ def change_pin():
     return render_template("change_pin.html", message=message)
 
 
-# 🚪 LOGOUT
+# 🚪 LOGOUT (USER)
 @app.route("/logout")
 def logout():
     session.clear()
@@ -225,7 +231,7 @@ def admin_login():
     if session.get("admin"):
         return redirect("/admin/dashboard")
 
-    message = ""   # ✅ IMPORTANT (fix error)
+    message = ""
 
     if request.method == "POST":
         username = request.form.get("username")
@@ -238,9 +244,19 @@ def admin_login():
             message = "❌ Invalid Username or Password"
 
     return render_template("admin_login.html", message=message)
+
+
+# 🔥 ADMIN LOGOUT (FIXED)
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("admin", None)
+    return redirect("/admin")
+
+
+# 🔥 CLEAR HISTORY
 @app.route("/admin/clear_history")
 def clear_history():
-    if not session.get("admin"):
+    if not session.get("admin") and session.get("role") != "admin":
         return redirect("/admin")
 
     cursor.execute("DELETE FROM transactions")
@@ -252,7 +268,7 @@ def clear_history():
 # 🔥 ADMIN DASHBOARD
 @app.route("/admin/dashboard")
 def admin_dashboard():
-    if not session.get("admin"):
+    if not session.get("admin") and session.get("role") != "admin":
         return redirect("/admin")
 
     cursor.execute("SELECT id, name, balance FROM users")
@@ -261,7 +277,6 @@ def admin_dashboard():
     cursor.execute("SELECT * FROM transactions")
     transactions = cursor.fetchall()
 
-    # 📊 CHART DATA
     total_deposit = sum(t["amount"] for t in transactions if t["type"] == "Deposit")
     total_withdraw = sum(t["amount"] for t in transactions if t["type"] == "Withdraw")
 
@@ -277,7 +292,7 @@ def admin_dashboard():
 # 🔥 DELETE USER
 @app.route("/admin/delete_user/<int:user_id>")
 def delete_user(user_id):
-    if not session.get("admin"):
+    if not session.get("admin") and session.get("role") != "admin":
         return redirect("/admin")
 
     cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
