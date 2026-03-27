@@ -225,6 +225,8 @@ def admin_login():
     if session.get("admin"):
         return redirect("/admin/dashboard")
 
+    message = ""   # ✅ IMPORTANT (fix error)
+
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -233,7 +235,7 @@ def admin_login():
             session["admin"] = True
             return redirect("/admin/dashboard")
         else:
-            return "Invalid Admin Login"
+            message = "❌ Invalid Username or Password"
 
     return render_template("admin_login.html", message=message)
 
