@@ -258,13 +258,19 @@ def admin_dashboard():
     cursor.execute("SELECT id, name, balance FROM users")
     users = cursor.fetchall()
 
-    cursor.execute("SELECT * FROM transactions ORDER BY id DESC")
+    cursor.execute("SELECT * FROM transactions")
     transactions = cursor.fetchall()
+
+    # 📊 CHART DATA
+    total_deposit = sum(t["amount"] for t in transactions if t["type"] == "Deposit")
+    total_withdraw = sum(t["amount"] for t in transactions if t["type"] == "Withdraw")
 
     return render_template(
         "admin_dashboard.html",
         users=users,
-        transactions=transactions
+        transactions=transactions,
+        total_deposit=total_deposit,
+        total_withdraw=total_withdraw
     )
 
 
